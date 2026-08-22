@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>NicRush DCHI Dashboard</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .dchi-card {
+            text-align: center;
+        }
+
+        .label {
+            color: #94a3b8;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .dchi {
+            font-size: 76px;
+            font-weight: bold;
+            margin: 12px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 999px;
+            font-weight: bold;
+        }
+
+        .healthy {
+            background: #14532d;
+            color: #bbf7d0;
+        }
+
+        .monitor {
+            background: #713f12;
+            color: #fef08a;
+        }
+
+        .priority {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+
+        .sensor-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 20px;
+        }
+
+        .value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .score {
+            margin-top: 10px;
+            color: #cbd5e1;
+        }
+
+        .problem {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .priority-number {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .updated {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+
+        @media (max-width: 800px) {
+
+            .sensor-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <h1>
+        Drainage Capacity Health Index
+    </h1>
+
+    <div class="subtitle">
+        NicRush — Live Drainage Monitoring
+    </div>
+
+
+    <div class="card dchi-card">
+
+        <div class="label">
+            Drain
+        </div>
+
+        <div id="drain">
+            DRAIN_01
+        </div>
+
+
+        <div class="label">
+            DCHI
+        </div>
+
+        <div id="dchi" class="dchi">
+            --
+        </div>
+
+
+        <div
+            id="status"
+            class="status monitor"
+        >
+            WAITING
+        </div>
+
+    </div>
+
+
+    <div class="sensor-grid">
+
+
+        <div class="card">
+
+            <div class="label">
+                Flow Rate
+            </div>
+
+            <div
+                id="flow"
+                class="value"
+            >
+                --
+            </div>
+
+            <div
+                id="flowScore"
+                class="score"
+            >
+                Penalty: --
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="label">
+                Water Level
+            </div>
+
+            <div
+                id="water"
+                class="value"
+            >
+                --
+            </div>
+
+            <div
+                id="waterScore"
+                class="score"
+            >
+                Penalty: --
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="label">
+                Vibration
+            </div>
+
+            <div
+                id="vibration"
+                class="value"
+            >
+                --
+            </div>
+
+            <div
+                id="vibrationScore"
+                class="score"
+            >
+                Penalty: --
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="label">
+            Primary Problem
+        </div>
+
+        <div
+            id="problem"
+            class="problem"
+        >
+            Waiting for data...
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="label">
+            Priority
+        </div>
+
+        <div class="priority-number">
+            #1
+        </div>
+
+    </div>
+
+
+    <div
+        id="updated"
+        class="updated"
+    >
+        Waiting for telemetry...
+    </div>
+
+</div>
+
+
+<script>
+
+async function updateDashboard() {
+
+    try {
+
+        const response =
+            await fetch("/api/latest");
+
+        if (!response.ok) {
+            throw new Error(
+                "API request failed"
+            );
+        }
+
+        const data =
+            await response.json();
+
+
+        document.getElementById(
+            "drain"
+        ).textContent =
+            data.drain_id;
+
+
+        document.getElementById(
+            "dchi"
+        ).textContent =
+            Number(
+                data.dchi
+            ).toFixed(1);
+
+
+        const status =
+            document.getElementById(
+                "status"
+            );
+
+        status.textContent =
+            data.status;
+
+        status.className =
+            "status " +
+            data.status.toLowerCase();
+
+
+        document.getElementById(
+            "flow"
+        ).textContent =
+            Number(
+                data.raw.flow_rate
+            ).toFixed(2);
+
+
+        document.getElementById(
+            "water"
+        ).textContent =
+            Number(
+                data.raw.water_level
+            ).toFixed(2);
+
+
+        document.getElementById(
+            "vibration"
+        ).textContent =
+            Number(
+                data.raw.vibration
+            ).toFixed(2);
+
+
+        document.getElementById(
+            "flowScore"
+        ).textContent =
+            "Penalty: " +
+            Number(
+                data.scores.flow
+            ).toFixed(1);
+
+
+        document.getElementById(
+            "waterScore"
+        ).textContent =
+            "Penalty: " +
+            Number(
+                data.scores.water_level
+            ).toFixed(1);
+
+
+        document.getElementById(
+            "vibrationScore"
+        ).textContent =
+            "Penalty: " +
+            Number(
+                data.scores.vibration
+            ).toFixed(1);
+
+
+        document.getElementById(
+            "problem"
+        ).textContent =
+            data.primary_problem;
+
+
+        document.getElementById(
+            "updated"
+        ).textContent =
+            "Last update: " +
+            new Date().toLocaleTimeString();
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        document.getElementById(
+            "problem"
+        ).textContent =
+            "Backend connection error";
+
+    }
+
+}
+
+
+updateDashboard();
+
+
+setInterval(
+    updateDashboard,
+    1000
+);
+
+</script>
+
+
+</body>
+
+</html>
