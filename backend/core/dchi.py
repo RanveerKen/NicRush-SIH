@@ -1,100 +1,19 @@
 from backend.core.models import (
     DCHIResult,
-    SensorData,
-    SensorScores,
+    StandardizedScores,
+    TelemetryData,
+)
+
+from backend.core.standardization import (
+    standardize_flow,
+    standardize_vibration,
+    standardize_water_level,
 )
 
 
-# ==========================================================
-# DEMO CALIBRATION RANGES
-# ==========================================================
-#
-# These are temporary prototype values.
-# We will replace them with your team's actual calibrated
-# sensor operating ranges once the electronics team gives them.
-#
-# The resulting values are PENALTY scores:
-#
-# 0   = little/no problem
-# 100 = severe problem
-# ==========================================================
-
-FLOW_MIN = 0.0
-FLOW_MAX = 100.0
-
-WATER_LEVEL_MIN = 0.0
-WATER_LEVEL_MAX = 100.0
-
-VIBRATION_MIN = 0.0
-VIBRATION_MAX = 1.0
-
-
-def clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
-    return max(minimum, min(value, maximum))
-
-
-def normalize(
-    value: float,
-    minimum: float,
-    maximum: float,
-) -> float:
-
-    if maximum <= minimum:
-        raise ValueError("Maximum must be greater than minimum.")
-
-    score = ((value - minimum) / (maximum - minimum)) * 100.0
-
-    return clamp(score)
-
-
-def flow_penalty(flow_rate: float) -> float:
-    """
-    Prototype assumption:
-    lower-than-normal flow indicates poorer drainage performance.
-
-    Therefore the normalized value is inverted.
-    """
-
-    normal_score = normalize(
-        flow_rate,
-        FLOW_MIN,
-        FLOW_MAX,
-    )
-
-    return round(100.0 - normal_score, 2)
-
-
-def water_level_penalty(water_level: float) -> float:
-    """
-    Higher water level = greater drainage stress.
-    """
-
-    return round(
-        normalize(
-            water_level,
-            WATER_LEVEL_MIN,
-            WATER_LEVEL_MAX,
-        ),
-        2,
-    )
-
-
-def vibration_penalty(vibration: float) -> float:
-    """
-    Higher vibration = greater structural/disturbance penalty.
-    """
-
-    return round(
-        normalize(
-            vibration,
-            VIBRATION_MIN,
-            VIBRATION_MAX,
-        ),
-        2,
-    )
-
-
-def classify_dchi(dchi: float) -> str:
+def classify_dchi(
+    dchi: float,
+) -> str:
 
     if dchi >= 80:
         return "HEALTHY"
@@ -105,25 +24,81 @@ def classify_dchi(dchi: float) -> str:
     return "PRIORITY"
 
 
-def calculate_dchi(data: SensorData) -> DCHIResult:
+def calculate_dchi(
+    telemetry: TelemetryData,
+    pipe_depth_cm: float,
+) -> DCHIResult:
 
-    flow_score = flow_penalty(
-        data.flow_rate
+    if pipe_depth_cm <= 0:
+        raise ValueError(
+            "Pipe depth must be greater than zero."
+        )
+
+    # --------------------------------------------------------
+    # Convert ultrasonic distance to water depth.
+    # --------------------------------------------------------
+
+    water_depth_cm = (
+        pipe_depth_cm
+        - telemetry.water_distance_cm
     )
 
-    water_level_score = water_level_penalty(
-        data.water_level
+    # Prevent impossible negative/overfilled values.
+
+    water_depth_cm = max(
+        0.0,
+        min(
+            water_depth_cm,
+            pipe_depth_cm,
+        ),
     )
 
-    vibration_score = vibration_penalty(
-        data.vibration
+    # --------------------------------------------------------
+    # Convert to pipe fill percentage.
+    # --------------------------------------------------------
+
+    fill_percentage = (
+        water_depth_cm
+        / pipe_depth_cm
+    ) * 100.0
+
+    fill_percentage = max(
+        0.0,
+        min(
+            fill_percentage,
+            100.0,
+        ),
     )
 
-    scores = SensorScores(
+    # --------------------------------------------------------
+    # Standardize each sensor.
+    # --------------------------------------------------------
+
+    flow_score = standardize_flow(
+        telemetry.flow_rate
+    )
+
+    water_level_score = (
+        standardize_water_level(
+            fill_percentage
+        )
+    )
+
+    vibration_score = (
+        standardize_vibration(
+            telemetry.vibration
+        )
+    )
+
+    scores = StandardizedScores(
         flow=flow_score,
         water_level=water_level_score,
         vibration=vibration_score,
     )
+
+    # --------------------------------------------------------
+    # Average the three penalty scores.
+    # --------------------------------------------------------
 
     average_penalty = (
         flow_score
@@ -131,24 +106,48 @@ def calculate_dchi(data: SensorData) -> DCHIResult:
         + vibration_score
     ) / 3.0
 
+    average_penalty = round(
+        average_penalty,
+        2,
+    )
+
+    # --------------------------------------------------------
+    # DCHI
+    # --------------------------------------------------------
+
     dchi = round(
         100.0 - average_penalty,
         2,
     )
 
-    status = classify_dchi(dchi)
-
     return DCHIResult(
-        drain_id=data.drain_id,
+        drain_id=telemetry.drain_id,
+        timestamp=telemetry.timestamp,
 
-        flow_rate=data.flow_rate,
-        water_level=data.water_level,
-        vibration=data.vibration,
+        flow_rate=telemetry.flow_rate,
+        water_distance_cm=(
+            telemetry.water_distance_cm
+        ),
+        vibration=telemetry.vibration,
+
+        pipe_depth_cm=pipe_depth_cm,
+
+        water_depth_cm=round(
+            water_depth_cm,
+            2,
+        ),
+
+        fill_percentage=round(
+            fill_percentage,
+            2,
+        ),
 
         scores=scores,
 
+        average_penalty=average_penalty,
         dchi=dchi,
-        status=status,
+
+        status=classify_dchi(dchi),
 
         primary_problem="",
     )

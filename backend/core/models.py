@@ -2,15 +2,17 @@ from dataclasses import dataclass
 
 
 @dataclass
-class SensorData:
+class TelemetryData:
     drain_id: str
+    timestamp: str
+
     flow_rate: float
-    water_level: float
+    water_distance_cm: float
     vibration: float
 
 
 @dataclass
-class SensorScores:
+class StandardizedScores:
     flow: float
     water_level: float
     vibration: float
@@ -19,13 +21,21 @@ class SensorScores:
 @dataclass
 class DCHIResult:
     drain_id: str
+    timestamp: str
 
     flow_rate: float
-    water_level: float
+    water_distance_cm: float
     vibration: float
 
-    scores: SensorScores
+    pipe_depth_cm: float
+    water_depth_cm: float
+    fill_percentage: float
 
+    scores: StandardizedScores
+
+    average_penalty: float
     dchi: float
+
     status: str
     primary_problem: str
+
