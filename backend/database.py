@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 
 DATABASE_PATH = (
@@ -9,7 +10,6 @@ DATABASE_PATH = (
 
 
 def connect() -> sqlite3.Connection:
-
     connection = sqlite3.connect(
         DATABASE_PATH
     )
@@ -20,22 +20,23 @@ def connect() -> sqlite3.Connection:
 
 
 def initialize_database() -> None:
-
     connection = connect()
 
     try:
-
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS nodes (
                 drain_id TEXT PRIMARY KEY,
 
-                pipe_depth_cm REAL NOT NULL,
+                pipe_depth_cm REAL,
 
-                sensor_offset_cm REAL NOT NULL
-                    DEFAULT 0,
+                sensor_offset_cm REAL NOT NULL DEFAULT 0,
 
-                updated_at TEXT NOT NULL
+                discovered_at TEXT NOT NULL,
+
+                configured_at TEXT,
+
+                last_seen TEXT NOT NULL
             )
             """
         )
@@ -53,27 +54,84 @@ def initialize_database() -> None:
 
                 vibration REAL NOT NULL,
 
-                pipe_depth_cm REAL NOT NULL,
+                pipe_depth_cm REAL,
 
-                water_depth_cm REAL NOT NULL,
+                water_depth_cm REAL,
 
-                fill_percentage REAL NOT NULL,
+                fill_percentage REAL,
 
-                flow_score REAL NOT NULL,
+                flow_score REAL,
 
-                water_level_score REAL NOT NULL,
+                water_level_score REAL,
 
-                vibration_score REAL NOT NULL,
+                vibration_score REAL,
 
-                average_penalty REAL NOT NULL,
+                average_penalty REAL,
 
-                dchi REAL NOT NULL,
+                dchi REAL,
 
                 status TEXT NOT NULL,
 
                 primary_problem TEXT NOT NULL,
 
-                updated_at TEXT NOT NULL
+                updated_at TEXT NOT NULL,
+
+                FOREIGN KEY (drain_id)
+                    REFERENCES nodes(drain_id)
+            )
+            """
+        )
+
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS telemetry_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                drain_id TEXT NOT NULL,
+
+                timestamp TEXT NOT NULL,
+
+                flow_rate REAL NOT NULL,
+
+                water_distance_cm REAL NOT NULL,
+
+                vibration REAL NOT NULL,
+
+                pipe_depth_cm REAL,
+
+                water_depth_cm REAL,
+
+                fill_percentage REAL,
+
+                flow_score REAL,
+
+                water_level_score REAL,
+
+                vibration_score REAL,
+
+                average_penalty REAL,
+
+                dchi REAL,
+
+                status TEXT NOT NULL,
+
+                primary_problem TEXT NOT NULL,
+
+                received_at TEXT NOT NULL,
+
+                FOREIGN KEY (drain_id)
+                    REFERENCES nodes(drain_id)
+            )
+            """
+        )
+
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS
+            idx_history_drain_time
+            ON telemetry_history (
+                drain_id,
+                timestamp
             )
             """
         )
@@ -81,20 +139,41 @@ def initialize_database() -> None:
         connection.commit()
 
     finally:
-
         connection.close()
 
 
-def save_node(
+def discover_node(
     drain_id: str,
-    pipe_depth_cm: float,
-    sensor_offset_cm: float,
-    updated_at: str,
-) -> None:
-
+    timestamp: str,
+) -> dict[str, Any]:
     connection = connect()
 
     try:
+        row = connection.execute(
+            """
+            SELECT *
+            FROM nodes
+            WHERE drain_id = ?
+            """,
+            (drain_id,),
+        ).fetchone()
+
+        if row is not None:
+            connection.execute(
+                """
+                UPDATE nodes
+                SET last_seen = ?
+                WHERE drain_id = ?
+                """,
+                (
+                    timestamp,
+                    drain_id,
+                ),
+            )
+
+            connection.commit()
+
+            return dict(row)
 
         connection.execute(
             """
@@ -102,45 +181,88 @@ def save_node(
                 drain_id,
                 pipe_depth_cm,
                 sensor_offset_cm,
-                updated_at
+                discovered_at,
+                configured_at,
+                last_seen
             )
-            VALUES (?, ?, ?, ?)
-
-            ON CONFLICT(drain_id)
-            DO UPDATE SET
-
-                pipe_depth_cm =
-                    excluded.pipe_depth_cm,
-
-                sensor_offset_cm =
-                    excluded.sensor_offset_cm,
-
-                updated_at =
-                    excluded.updated_at
+            VALUES (?, NULL, 0, ?, NULL, ?)
             """,
             (
                 drain_id,
-                pipe_depth_cm,
-                sensor_offset_cm,
-                updated_at,
+                timestamp,
+                timestamp,
             ),
         )
 
         connection.commit()
 
-    finally:
+        row = connection.execute(
+            """
+            SELECT *
+            FROM nodes
+            WHERE drain_id = ?
+            """,
+            (drain_id,),
+        ).fetchone()
 
+        return dict(row)
+
+    finally:
+        connection.close()
+
+
+def configure_node(
+    drain_id: str,
+    pipe_depth_cm: float,
+    sensor_offset_cm: float,
+    configured_at: str,
+) -> dict[str, Any] | None:
+    connection = connect()
+
+    try:
+        connection.execute(
+            """
+            UPDATE nodes
+            SET
+                pipe_depth_cm = ?,
+                sensor_offset_cm = ?,
+                configured_at = ?
+            WHERE drain_id = ?
+            """,
+            (
+                pipe_depth_cm,
+                sensor_offset_cm,
+                configured_at,
+                drain_id,
+            ),
+        )
+
+        connection.commit()
+
+        row = connection.execute(
+            """
+            SELECT *
+            FROM nodes
+            WHERE drain_id = ?
+            """,
+            (drain_id,),
+        ).fetchone()
+
+        if row is None:
+            return None
+
+        return dict(row)
+
+    finally:
         connection.close()
 
 
 def get_node(
     drain_id: str,
-) -> dict | None:
-
+) -> dict[str, Any] | None:
     connection = connect()
 
     try:
-
         row = connection.execute(
             """
             SELECT *
@@ -157,16 +279,13 @@ def get_node(
         )
 
     finally:
-
         connection.close()
 
 
-def get_nodes() -> list[dict]:
-
+def get_nodes() -> list[dict[str, Any]]:
     connection = connect()
 
     try:
-
         rows = connection.execute(
             """
             SELECT *
@@ -181,18 +300,15 @@ def get_nodes() -> list[dict]:
         ]
 
     finally:
-
         connection.close()
 
 
 def save_latest(
-    data: dict,
+    data: dict[str, Any],
 ) -> None:
-
     connection = connect()
 
     try:
-
         connection.execute(
             """
             INSERT INTO latest_readings (
@@ -214,13 +330,12 @@ def save_latest(
                 updated_at
             )
             VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?, ?
             )
 
             ON CONFLICT(drain_id)
             DO UPDATE SET
-
                 timestamp =
                     excluded.timestamp,
 
@@ -289,18 +404,72 @@ def save_latest(
         connection.commit()
 
     finally:
+        connection.close()
 
+
+def save_history(
+    data: dict[str, Any],
+) -> None:
+    connection = connect()
+
+    try:
+        connection.execute(
+            """
+            INSERT INTO telemetry_history (
+                drain_id,
+                timestamp,
+                flow_rate,
+                water_distance_cm,
+                vibration,
+                pipe_depth_cm,
+                water_depth_cm,
+                fill_percentage,
+                flow_score,
+                water_level_score,
+                vibration_score,
+                average_penalty,
+                dchi,
+                status,
+                primary_problem,
+                received_at
+            )
+            VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?, ?
+            )
+            """,
+            (
+                data["drain_id"],
+                data["timestamp"],
+                data["flow_rate"],
+                data["water_distance_cm"],
+                data["vibration"],
+                data["pipe_depth_cm"],
+                data["water_depth_cm"],
+                data["fill_percentage"],
+                data["flow_score"],
+                data["water_level_score"],
+                data["vibration_score"],
+                data["average_penalty"],
+                data["dchi"],
+                data["status"],
+                data["primary_problem"],
+                data["received_at"],
+            ),
+        )
+
+        connection.commit()
+
+    finally:
         connection.close()
 
 
 def get_latest(
     drain_id: str,
-) -> dict | None:
-
+) -> dict[str, Any] | None:
     connection = connect()
 
     try:
-
         row = connection.execute(
             """
             SELECT *
@@ -317,21 +486,23 @@ def get_latest(
         )
 
     finally:
-
         connection.close()
 
 
-def get_all_latest() -> list[dict]:
-
+def get_all_latest() -> list[dict[str, Any]]:
     connection = connect()
 
     try:
-
         rows = connection.execute(
             """
             SELECT *
             FROM latest_readings
-            ORDER BY dchi ASC
+            ORDER BY
+                CASE
+                    WHEN dchi IS NULL THEN 1
+                    ELSE 0
+                END,
+                dchi ASC
             """
         ).fetchall()
 
@@ -341,5 +512,65 @@ def get_all_latest() -> list[dict]:
         ]
 
     finally:
+        connection.close()
 
+
+def get_history(
+    drain_id: str,
+    limit: int = 500,
+) -> list[dict[str, Any]]:
+    connection = connect()
+
+    try:
+        rows = connection.execute(
+            """
+            SELECT *
+            FROM telemetry_history
+            WHERE drain_id = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+            """,
+            (
+                drain_id,
+                limit,
+            ),
+        ).fetchall()
+
+        return [
+            dict(row)
+            for row in rows
+        ]
+
+    finally:
+        connection.close()
+
+
+def get_priority_queue() -> list[dict[str, Any]]:
+    connection = connect()
+
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+                l.drain_id,
+                l.dchi,
+                l.status,
+                l.primary_problem,
+                l.updated_at
+            FROM latest_readings l
+            INNER JOIN nodes n
+                ON l.drain_id = n.drain_id
+            WHERE
+                n.pipe_depth_cm IS NOT NULL
+                AND l.dchi IS NOT NULL
+            ORDER BY l.dchi ASC
+            """
+        ).fetchall()
+
+        return [
+            dict(row)
+            for row in rows
+        ]
+
+    finally:
         connection.close()
