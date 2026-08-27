@@ -5,35 +5,44 @@ from typing import Any
 
 import requests
 import serial
+
 from serial import SerialException
 
 
 # ============================================================
-# CONFIGURATION
+# SERIAL CONFIGURATION
 # ============================================================
 
-# Your receiver ESP32 is currently detected as /dev/ttyUSB0.
 SERIAL_PORT = "/dev/ttyUSB0"
 
-# This must match Serial.begin(...) on the ESP32.
 BAUD_RATE = 115200
 
-# Serial read timeout in seconds.
 SERIAL_TIMEOUT = 2
-
-# FastAPI is running on the same Raspberry Pi.
-API_URL = "http://127.0.0.1:8000/api/telemetry"
 
 
 # ============================================================
-# EXPECTED JSON FIELDS
+# FASTAPI
+# ============================================================
+
+API_URL = (
+    "http://127.0.0.1:8000/api/telemetry"
+)
+
+
+# ============================================================
+# REQUIRED JSON FIELDS
 # ============================================================
 
 REQUIRED_FIELDS = {
+
     "drain_id",
+
     "timestamp",
+
     "flow_rate",
+
     "water_distance_cm",
+
     "vibration",
 }
 
@@ -43,118 +52,160 @@ REQUIRED_FIELDS = {
 # ============================================================
 
 logging.basicConfig(
+
     level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s",
+
+    format=(
+        "%(asctime)s | "
+        "%(levelname)s | "
+        "%(message)s"
+    ),
 )
 
-logger = logging.getLogger("nicrush-serial")
+
+logger = logging.getLogger(
+    "nicrush-serial"
+)
 
 
 # ============================================================
-# VALIDATION
+# VALIDATE PACKET
 # ============================================================
 
 def validate_packet(
     packet: dict[str, Any],
 ) -> tuple[bool, str]:
-    """
-    Check that the received JSON contains the fields
-    expected by the FastAPI backend.
-    """
 
     missing_fields = (
-        REQUIRED_FIELDS - packet.keys()
+        REQUIRED_FIELDS
+        - packet.keys()
     )
 
+
     if missing_fields:
+
         return (
             False,
-            "Missing fields: "
-            + ", ".join(
-                sorted(missing_fields)
+
+            (
+                "Missing fields: "
+                + ", ".join(
+                    sorted(
+                        missing_fields
+                    )
+                )
             ),
         )
 
-    # These values must be numeric.
+
+    # --------------------------------------------------------
+    # Validate numeric values
+    # --------------------------------------------------------
+
     numeric_fields = (
+
         "flow_rate",
+
         "water_distance_cm",
+
         "vibration",
     )
+
 
     for field in numeric_fields:
 
         value = packet[field]
 
-        if not isinstance(
+
+        if isinstance(
             value,
-            (int, float),
+            bool,
         ):
+
             return (
                 False,
                 f"{field} must be numeric",
             )
 
+
+        if not isinstance(
+            value,
+            (int, float),
+        ):
+
+            return (
+                False,
+                f"{field} must be numeric",
+            )
+
+
         if value < 0:
+
             return (
                 False,
                 f"{field} cannot be negative",
             )
 
-    # drain_id must be text.
+
+    # --------------------------------------------------------
+    # Validate strings
+    # --------------------------------------------------------
+
     if not isinstance(
         packet["drain_id"],
         str,
     ):
+
         return (
             False,
             "drain_id must be a string",
         )
 
-    # timestamp must be text.
+
     if not isinstance(
         packet["timestamp"],
         str,
     ):
+
         return (
             False,
             "timestamp must be a string",
         )
 
+
     return True, "OK"
 
 
 # ============================================================
-# JSON PARSER
+# PARSE JSON LINE
 # ============================================================
 
 def parse_json_line(
     line: str,
 ) -> dict[str, Any] | None:
-    """
-    Convert one serial line into a Python dictionary.
-
-    The ESP32 must send one complete JSON object per line.
-    """
 
     line = line.strip()
+
 
     if not line:
         return None
 
+
     try:
 
-        packet = json.loads(line)
+        packet = json.loads(
+            line
+        )
 
-    except json.JSONDecodeError as exc:
+    except json.JSONDecodeError:
 
         logger.warning(
-            "Rejected invalid JSON: %s | line=%r",
-            exc,
+            "Rejected non-JSON line: %s",
             line,
         )
 
         return None
+
 
     if not isinstance(
         packet,
@@ -162,30 +213,34 @@ def parse_json_line(
     ):
 
         logger.warning(
-            "Rejected JSON: root object is not a JSON object."
+            "Rejected packet: JSON root is not an object."
         )
 
         return None
 
-    valid, reason = validate_packet(
-        packet
+
+    valid, reason = (
+        validate_packet(
+            packet
+        )
     )
+
 
     if not valid:
 
         logger.warning(
-            "Rejected packet: %s | packet=%s",
+            "Rejected JSON packet: %s",
             reason,
-            packet,
         )
 
         return None
+
 
     return packet
 
 
 # ============================================================
-# SEND PACKET TO FASTAPI
+# SEND TO FASTAPI
 # ============================================================
 
 def send_to_backend(
@@ -195,111 +250,96 @@ def send_to_backend(
     try:
 
         response = requests.post(
+
             API_URL,
+
             json=packet,
+
             timeout=5,
         )
 
+
         response.raise_for_status()
 
-        backend_data = response.json()
+
+        result = response.json()
+
 
         logger.info(
-            "Backend accepted packet | "
-            "node=%s | configured=%s | "
-            "DCHI=%s | status=%s",
-            backend_data.get(
-                "drain_id",
-                packet.get("drain_id"),
-            ),
-            backend_data.get(
-                "configured"
-            ),
-            backend_data.get(
-                "dchi"
-            ),
-            backend_data.get(
-                "status"
-            ),
-        )
 
-    except requests.exceptions.ConnectionError:
+            "Backend accepted %s | "
+            "DCHI=%s | "
+            "status=%s | "
+            "problem=%s",
 
-        logger.error(
-            "Could not connect to FastAPI at %s. "
-            "Is Uvicorn running?",
-            API_URL,
-        )
+            packet["drain_id"],
 
-    except requests.exceptions.Timeout:
+            result.get("dchi"),
 
-        logger.error(
-            "FastAPI request timed out."
-        )
+            result.get("status"),
 
-    except requests.exceptions.HTTPError as exc:
-
-        logger.error(
-            "FastAPI rejected packet: %s | response=%s",
-            exc,
-            getattr(
-                exc.response,
-                "text",
-                "",
+            result.get(
+                "primary_problem"
             ),
         )
+
 
     except requests.RequestException as exc:
 
         logger.error(
-            "Backend request failed: %s",
+            "FastAPI request failed: %s",
             exc,
-        )
-
-    except ValueError:
-
-        logger.error(
-            "Backend returned a response "
-            "that was not valid JSON."
         )
 
 
 # ============================================================
-# MAIN SERIAL LOOP
+# MAIN
 # ============================================================
 
 def main() -> None:
 
     logger.info(
-        "Starting NicRush serial receiver."
+        "Starting NicRush serial receiver"
     )
 
+
     logger.info(
-        "Serial port: %s",
+        "Serial device: %s",
         SERIAL_PORT,
     )
+
 
     logger.info(
         "Baud rate: %s",
         BAUD_RATE,
     )
 
-    logger.info(
-        "Backend API: %s",
-        API_URL,
-    )
 
     try:
 
         with serial.Serial(
+
             port=SERIAL_PORT,
+
             baudrate=BAUD_RATE,
+
             timeout=SERIAL_TIMEOUT,
+
         ) as connection:
 
+
             logger.info(
-                "Receiver ESP32 connected successfully."
+                "Receiver ESP32 connected."
             )
+
+
+            # ------------------------------------------------
+            # Give the receiver a moment to reset after
+            # opening the serial port.
+            # ------------------------------------------------
+
+            connection.reset_input_buffer()
+
 
             while True:
 
@@ -307,31 +347,30 @@ def main() -> None:
                     connection.readline()
                 )
 
+
                 if not raw_line:
                     continue
 
+
                 line = raw_line.decode(
+
                     "utf-8",
+
                     errors="replace",
-                ).strip()
-
-                if not line:
-                    continue
-
-                logger.info(
-                    "Serial RX: %s",
-                    line,
                 )
+
 
                 packet = parse_json_line(
                     line
                 )
 
+
                 if packet is None:
                     continue
 
+
                 logger.info(
-                    "Accepted JSON packet: %s",
+                    "Received JSON: %s",
                     json.dumps(
                         packet,
                         separators=(
@@ -341,54 +380,37 @@ def main() -> None:
                     ),
                 )
 
+
                 send_to_backend(
                     packet
                 )
 
-    except FileNotFoundError:
-
-        logger.error(
-            "Serial device %s does not exist.",
-            SERIAL_PORT,
-        )
-
-        logger.error(
-            "Check the device with: "
-            "ls /dev/ttyUSB* /dev/ttyACM*"
-        )
-
-        sys.exit(1)
-
-    except PermissionError:
-
-        logger.error(
-            "Permission denied for %s.",
-            SERIAL_PORT,
-        )
-
-        logger.error(
-            "Your user may need access to the "
-            "'dialout' group."
-        )
-
-        sys.exit(1)
 
     except SerialException as exc:
 
         logger.error(
-            "Could not open serial port %s: %s",
+
+            "Could not open %s: %s",
+
             SERIAL_PORT,
+
             exc,
         )
 
         sys.exit(1)
 
+
     except KeyboardInterrupt:
 
         logger.info(
-            "Serial receiver stopped by user."
+            "Serial receiver stopped."
         )
 
 
+# ============================================================
+# ENTRY POINT
+# ============================================================
+
 if __name__ == "__main__":
+
     main()

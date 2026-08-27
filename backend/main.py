@@ -2,13 +2,33 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Query,
+)
 
-from backend.core.dchi import calculate_dchi
-from backend.core.models import TelemetryData
+from fastapi.middleware.cors import (
+    CORSMiddleware,
+)
+
+from fastapi.responses import (
+    FileResponse,
+)
+
+from pydantic import (
+    BaseModel,
+    Field,
+)
+
+from backend.core.dchi import (
+    calculate_dchi,
+)
+
+from backend.core.models import (
+    TelemetryData,
+)
+
 from backend.core.problem_detector import (
     determine_primary_problem,
     rank_problems,
@@ -29,12 +49,20 @@ from backend.database import (
 )
 
 
+# ============================================================
+# FASTAPI
+# ============================================================
+
 app = FastAPI(
     title="NicRush DCHI",
     description="Drainage Capacity Health Index",
-    version="2.1.0",
+    version="2.2.0",
 )
 
+
+# ============================================================
+# CORS
+# ============================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,6 +72,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ============================================================
+# FRONTEND
+# ============================================================
 
 PROJECT_ROOT = (
     Path(__file__).resolve().parent.parent
@@ -56,12 +88,22 @@ FRONTEND_PATH = (
 )
 
 
+# ============================================================
+# STARTUP
+# ============================================================
+
 @app.on_event("startup")
 def startup() -> None:
+
     initialize_database()
 
 
+# ============================================================
+# API MODELS
+# ============================================================
+
 class NodeConfiguration(BaseModel):
+
     pipe_depth_cm: float = Field(
         gt=0
     )
@@ -73,6 +115,7 @@ class NodeConfiguration(BaseModel):
 
 
 class TelemetryPacket(BaseModel):
+
     drain_id: str = Field(
         min_length=1,
         max_length=100
@@ -93,46 +136,64 @@ class TelemetryPacket(BaseModel):
     )
 
 
+# ============================================================
+# DASHBOARD
+# ============================================================
+
 @app.get("/")
 def dashboard():
+
+    if not FRONTEND_PATH.exists():
+
+        raise HTTPException(
+            status_code=500,
+            detail="frontend/index.html not found.",
+        )
+
     return FileResponse(
         FRONTEND_PATH
     )
 
 
+# ============================================================
+# HEALTH
+# ============================================================
+
 @app.get("/api/health")
 def health():
+
     return {
         "status": "ok",
         "service": "nicrush-dchi",
-        "version": "2.1.0",
+        "version": "2.2.0",
     }
 
 
-# ==========================================================
-# NODE DISCOVERY / CONFIGURATION
-# ==========================================================
+# ============================================================
+# NODE DISCOVERY
+# ============================================================
 
 @app.get("/api/nodes")
 def list_nodes():
-    """
-    Returns every node that has actually sent telemetry.
-    """
 
     return {
         "nodes": get_nodes()
     }
 
 
-@app.get("/api/nodes/{drain_id}")
+@app.get(
+    "/api/nodes/{drain_id}"
+)
 def node_details(
-    drain_id: str
+    drain_id: str,
 ):
+
     node = get_node(
         drain_id
     )
 
     if node is None:
+
         raise HTTPException(
             status_code=404,
             detail="Node not discovered yet.",
@@ -141,6 +202,10 @@ def node_details(
     return node
 
 
+# ============================================================
+# NODE CONFIGURATION
+# ============================================================
+
 @app.post(
     "/api/nodes/{drain_id}/config"
 )
@@ -148,11 +213,13 @@ def configure_discovered_node(
     drain_id: str,
     config: NodeConfiguration,
 ):
+
     node = get_node(
         drain_id
     )
 
     if node is None:
+
         raise HTTPException(
             status_code=404,
             detail=(
@@ -160,145 +227,219 @@ def configure_discovered_node(
             ),
         )
 
+
     now = datetime.now(
         timezone.utc
     ).isoformat()
 
+
     configured = configure_node(
         drain_id=drain_id,
+
         pipe_depth_cm=(
             config.pipe_depth_cm
         ),
+
         sensor_offset_cm=(
             config.sensor_offset_cm
         ),
+
         configured_at=now,
     )
+
+
+    if configured is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Node not found.",
+        )
+
 
     return {
         "message": (
             "Node configuration saved."
         ),
+
         "node": configured,
     }
 
 
-# ==========================================================
+# ============================================================
 # TELEMETRY
-# ==========================================================
+# ============================================================
 
 @app.post("/api/telemetry")
 def receive_telemetry(
     packet: TelemetryPacket,
 ):
-    now = datetime.now(
+
+    received_at = datetime.now(
         timezone.utc
     ).isoformat()
 
-    # ------------------------------------------------------
-    # DISCOVER OR UPDATE NODE
-    # ------------------------------------------------------
+
+    # --------------------------------------------------------
+    # DISCOVER / UPDATE NODE
+    # --------------------------------------------------------
 
     node = discover_node(
         drain_id=packet.drain_id,
         timestamp=packet.timestamp,
     )
 
-    configured = (
-        node["pipe_depth_cm"]
-        is not None
-    )
 
-    # ------------------------------------------------------
-    # UNCONFIGURED NODE
-    #
-    # We still save the raw telemetry to history/latest.
-    # But DCHI cannot be calculated yet.
-    # ------------------------------------------------------
+    # --------------------------------------------------------
+    # NODE HAS NO DEPTH YET
+    # --------------------------------------------------------
 
-    if not configured:
+    if node["pipe_depth_cm"] is None:
 
         empty_data = {
-            "drain_id": packet.drain_id,
-            "timestamp": packet.timestamp,
 
-            "flow_rate": packet.flow_rate,
+            "drain_id":
+                packet.drain_id,
 
-            "water_distance_cm": (
-                packet.water_distance_cm
-            ),
+            "timestamp":
+                packet.timestamp,
 
-            "vibration": packet.vibration,
+            "flow_rate":
+                packet.flow_rate,
 
-            "pipe_depth_cm": None,
-            "water_depth_cm": None,
-            "fill_percentage": None,
+            "water_distance_cm":
+                packet.water_distance_cm,
 
-            "flow_score": None,
-            "water_level_score": None,
-            "vibration_score": None,
+            "vibration":
+                packet.vibration,
 
-            "average_penalty": None,
-            "dchi": None,
+            "pipe_depth_cm":
+                None,
 
-            "status": "CONFIG_REQUIRED",
+            "water_depth_cm":
+                None,
 
-            "primary_problem": (
-                "PLEASE ENTER DEPTH FIRST"
-            ),
+            "fill_percentage":
+                None,
+
+            "flow_score":
+                None,
+
+            "water_level_score":
+                None,
+
+            "blockage_score":
+                None,
+
+            "average_penalty":
+                None,
+
+            "dchi":
+                None,
+
+            "status":
+                "CONFIG_REQUIRED",
+
+            "primary_problem":
+                "PLEASE ENTER DEPTH FIRST",
         }
+
+
+        # ----------------------------------------------------
+        # Store raw/latest information even before
+        # configuration.
+        # ----------------------------------------------------
 
         save_latest(
             {
                 **empty_data,
-                "updated_at": now,
+
+                "updated_at":
+                    received_at,
             }
         )
+
 
         save_history(
             {
                 **empty_data,
-                "received_at": now,
+
+                "received_at":
+                    received_at,
             }
         )
 
+
         return {
-            "drain_id": packet.drain_id,
-            "discovered": True,
-            "configured": False,
-            "status": "CONFIG_REQUIRED",
-            "message": (
-                "Node discovered. "
-                "Please enter pipe depth."
-            ),
+
+            "discovered":
+                True,
+
+            "configured":
+                False,
+
+            "drain_id":
+                packet.drain_id,
+
+            "status":
+                "CONFIG_REQUIRED",
+
+            "message":
+                (
+                    "Node discovered. "
+                    "Please enter pipe depth."
+                ),
         }
 
-    # ------------------------------------------------------
-    # CONFIGURED NODE
-    # ------------------------------------------------------
+
+    # --------------------------------------------------------
+    # EFFECTIVE PIPE DEPTH
+    # --------------------------------------------------------
 
     effective_pipe_depth = (
         node["pipe_depth_cm"]
         + node["sensor_offset_cm"]
     )
 
+
+    # --------------------------------------------------------
+    # RAW TELEMETRY OBJECT
+    # --------------------------------------------------------
+
     telemetry = TelemetryData(
-        drain_id=packet.drain_id,
-        timestamp=packet.timestamp,
 
-        flow_rate=packet.flow_rate,
+        drain_id=
+            packet.drain_id,
 
-        water_distance_cm=(
-            packet.water_distance_cm
-        ),
+        timestamp=
+            packet.timestamp,
 
-        vibration=packet.vibration,
+        flow_rate=
+            packet.flow_rate,
+
+        water_distance_cm=
+            packet.water_distance_cm,
+
+        vibration=
+            packet.vibration,
     )
+
+
+    # --------------------------------------------------------
+    # DCHI
+    # --------------------------------------------------------
 
     result = calculate_dchi(
-        telemetry=telemetry,
-        pipe_depth_cm=effective_pipe_depth,
+        telemetry=
+            telemetry,
+
+        pipe_depth_cm=
+            effective_pipe_depth,
     )
+
+
+    # --------------------------------------------------------
+    # PRIMARY PROBLEM
+    # --------------------------------------------------------
 
     result.primary_problem = (
         determine_primary_problem(
@@ -306,192 +447,296 @@ def receive_telemetry(
         )
     )
 
+
+    # --------------------------------------------------------
+    # PROBLEM RANKING
+    # --------------------------------------------------------
+
     ranked_problems = rank_problems(
         result
     )
 
-    common_data = {
 
-        "drain_id": result.drain_id,
+    # --------------------------------------------------------
+    # DATA USED BY DATABASE
+    # --------------------------------------------------------
 
-        "timestamp": result.timestamp,
+    processed_data = {
 
-        "flow_rate": result.flow_rate,
+        "drain_id":
+            result.drain_id,
 
-        "water_distance_cm": (
-            result.water_distance_cm
-        ),
+        "timestamp":
+            result.timestamp,
 
-        "vibration": result.vibration,
+        "flow_rate":
+            result.flow_rate,
 
-        "pipe_depth_cm": (
-            node["pipe_depth_cm"]
-        ),
+        "water_distance_cm":
+            result.water_distance_cm,
 
-        "water_depth_cm": (
-            result.water_depth_cm
-        ),
+        "vibration":
+            result.vibration,
 
-        "fill_percentage": (
-            result.fill_percentage
-        ),
+        "pipe_depth_cm":
+            node["pipe_depth_cm"],
 
-        "flow_score": (
-            result.scores.flow
-        ),
+        "water_depth_cm":
+            result.water_depth_cm,
 
-        "water_level_score": (
-            result.scores.water_level
-        ),
+        "fill_percentage":
+            result.fill_percentage,
 
-        "vibration_score": (
-            result.scores.vibration
-        ),
+        "flow_score":
+            result.scores.flow,
 
-        "average_penalty": (
-            result.average_penalty
-        ),
+        "water_level_score":
+            result.scores.water_level,
 
-        "dchi": result.dchi,
+        "blockage_score":
+            result.scores.blockage,
 
-        "status": result.status,
+        "average_penalty":
+            result.average_penalty,
 
-        "primary_problem": (
-            result.primary_problem
-        ),
+        "dchi":
+            result.dchi,
+
+        "status":
+            result.status,
+
+        "primary_problem":
+            result.primary_problem,
     }
 
-    # ------------------------------------------------------
-    # CURRENT READING
-    # ------------------------------------------------------
+
+    # --------------------------------------------------------
+    # SAVE LATEST
+    # --------------------------------------------------------
 
     save_latest(
         {
-            **common_data,
-            "updated_at": now,
+            **processed_data,
+
+            "updated_at":
+                received_at,
         }
     )
 
-    # ------------------------------------------------------
-    # HISTORICAL READING
-    # ------------------------------------------------------
+
+    # --------------------------------------------------------
+    # SAVE HISTORY
+    # --------------------------------------------------------
 
     save_history(
         {
-            **common_data,
-            "received_at": now,
+            **processed_data,
+
+            "received_at":
+                received_at,
         }
     )
 
+
+    # --------------------------------------------------------
+    # API RESPONSE
+    # --------------------------------------------------------
+
     return {
-        "discovered": True,
-        "configured": True,
 
-        "drain_id": result.drain_id,
+        "discovered":
+            True,
 
-        "timestamp": result.timestamp,
+        "configured":
+            True,
+
+        "drain_id":
+            result.drain_id,
+
+        "timestamp":
+            result.timestamp,
 
         "configuration": {
-            "pipe_depth_cm": (
-                node["pipe_depth_cm"]
-            ),
 
-            "sensor_offset_cm": (
-                node["sensor_offset_cm"]
-            ),
+            "pipe_depth_cm":
+                node["pipe_depth_cm"],
+
+            "sensor_offset_cm":
+                node["sensor_offset_cm"],
         },
 
         "raw": {
-            "flow_rate": result.flow_rate,
 
-            "water_distance_cm": (
-                result.water_distance_cm
-            ),
+            "flow_rate":
+                result.flow_rate,
 
-            "vibration": result.vibration,
+            "water_distance_cm":
+                result.water_distance_cm,
+
+            "impact_rms_g":
+                result.vibration,
         },
 
         "derived": {
-            "water_depth_cm": (
-                result.water_depth_cm
-            ),
 
-            "fill_percentage": (
-                result.fill_percentage
-            ),
+            "water_depth_cm":
+                result.water_depth_cm,
+
+            "fill_percentage":
+                result.fill_percentage,
         },
 
         "scores": {
-            "flow": (
-                result.scores.flow
-            ),
 
-            "water_level": (
-                result.scores.water_level
-            ),
+            "flow":
+                result.scores.flow,
 
-            "vibration": (
-                result.scores.vibration
-            ),
+            "water_level":
+                result.scores.water_level,
+
+            "blockage":
+                result.scores.blockage,
         },
 
-        "average_penalty": (
-            result.average_penalty
-        ),
+        "average_penalty":
+            result.average_penalty,
 
-        "dchi": result.dchi,
+        "dchi":
+            result.dchi,
 
-        "status": result.status,
+        "status":
+            result.status,
 
-        "primary_problem": (
-            result.primary_problem
-        ),
+        "primary_problem":
+            result.primary_problem,
 
-        "problem_ranking": (
-            ranked_problems
-        ),
+        "problem_ranking":
+            ranked_problems,
 
-        "updated_at": now,
+        "updated_at":
+            received_at,
     }
 
 
-# ==========================================================
+# ============================================================
 # LATEST
-# ==========================================================
+# ============================================================
 
 @app.get("/api/latest")
 def latest(
-    drain_id: str | None = None
+    drain_id: str | None = None,
 ):
+
     if drain_id is None:
 
         nodes = get_nodes()
+
 
         if not nodes:
 
             return {
                 "status":
                     "NO_NODES_DISCOVERED",
-                "nodes": [],
+
+                "nodes":
+                    [],
             }
 
-        # First discovered node for
-        # single-node convenience.
-        drain_id = nodes[0]["drain_id"]
+
+        drain_id = nodes[0][
+            "drain_id"
+        ]
+
 
     reading = get_latest(
         drain_id
     )
 
+
     if reading is None:
 
         return {
-            "drain_id": drain_id,
-            "status": "NO_DATA",
+
+            "drain_id":
+                drain_id,
+
+            "status":
+                "NO_DATA",
         }
 
-    return reading
 
+    # --------------------------------------------------------
+    # Convert database row into the same structure returned
+    # by POST /api/telemetry.
+    # --------------------------------------------------------
+
+    return {
+
+        "drain_id":
+            reading["drain_id"],
+
+        "timestamp":
+            reading["timestamp"],
+
+        "configuration": {
+
+            "pipe_depth_cm":
+                reading["pipe_depth_cm"],
+        },
+
+        "raw": {
+
+            "flow_rate":
+                reading["flow_rate"],
+
+            "water_distance_cm":
+                reading["water_distance_cm"],
+
+            "impact_rms_g":
+                reading["vibration"],
+        },
+
+        "derived": {
+
+            "water_depth_cm":
+                reading["water_depth_cm"],
+
+            "fill_percentage":
+                reading["fill_percentage"],
+        },
+
+        "scores": {
+
+            "flow":
+                reading["flow_score"],
+
+            "water_level":
+                reading["water_level_score"],
+
+            "blockage":
+                reading["blockage_score"],
+        },
+
+        "average_penalty":
+            reading["average_penalty"],
+
+        "dchi":
+            reading["dchi"],
+
+        "status":
+            reading["status"],
+
+        "primary_problem":
+            reading["primary_problem"],
+
+        "updated_at":
+            reading["updated_at"],
+    }
+
+
+# ============================================================
+# ALL LATEST
+# ============================================================
 
 @app.get("/api/latest/all")
 def latest_all():
@@ -502,48 +747,57 @@ def latest_all():
     }
 
 
-# ==========================================================
+# ============================================================
 # PRIORITY QUEUE
-# ==========================================================
+# ============================================================
 
 @app.get("/api/priority")
 def priority_queue():
 
-    priority = (
+    queue = (
         get_priority_queue()
     )
 
+
     numbered = []
 
+
     for index, item in enumerate(
-        priority,
-        start=1
+        queue,
+        start=1,
     ):
 
         numbered.append(
             {
-                "rank": index,
+                "rank":
+                    index,
+
                 **item,
             }
         )
 
+
     return {
-        "priority_queue": numbered
+        "priority_queue":
+            numbered
     }
 
 
-# ==========================================================
+# ============================================================
 # HISTORY
-# ==========================================================
+# ============================================================
 
 @app.get(
     "/api/history/{drain_id}"
 )
 def history(
     drain_id: str,
+
     limit: int = Query(
         default=500,
+
         ge=1,
+
         le=5000,
     ),
 ):
@@ -552,17 +806,29 @@ def history(
         drain_id
     )
 
+
     if node is None:
+
         raise HTTPException(
             status_code=404,
             detail="Node not discovered.",
         )
 
+
+    readings = get_history(
+        drain_id,
+        limit,
+    )
+
+
     return {
-        "drain_id": drain_id,
-        "count": limit,
-        "readings": get_history(
+
+        "drain_id":
             drain_id,
-            limit,
-        ),
+
+        "count":
+            len(readings),
+
+        "readings":
+            readings,
     }

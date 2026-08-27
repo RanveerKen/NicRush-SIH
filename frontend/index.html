@@ -10,7 +10,10 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>NicRush DCHI</title>
+    <title>
+        NicRush — DCHI Dashboard
+    </title>
+
 
     <style>
 
@@ -18,198 +21,378 @@
             box-sizing: border-box;
         }
 
+
         body {
+
             margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #0f172a;
-            color: #e2e8f0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                #0f172a;
+
+            color:
+                #e2e8f0;
         }
+
 
         .container {
+
             max-width: 1300px;
-            margin: auto;
-            padding: 28px;
+
+            margin:
+                auto;
+
+            padding:
+                28px;
         }
 
-        .header {
-            margin-bottom: 24px;
-        }
 
         h1 {
-            margin: 0;
-            font-size: 32px;
+
+            margin:
+                0;
+
+            font-size:
+                32px;
         }
+
 
         .subtitle {
-            margin-top: 5px;
-            color: #94a3b8;
+
+            margin-top:
+                6px;
+
+            color:
+                #94a3b8;
+
+            margin-bottom:
+                25px;
         }
+
 
         .card {
-            background: #1e293b;
-            border-radius: 16px;
-            padding: 22px;
-            margin-bottom: 18px;
+
+            background:
+                #1e293b;
+
+            border-radius:
+                16px;
+
+            padding:
+                22px;
+
+            margin-bottom:
+                18px;
         }
+
 
         .title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 15px;
+
+            font-size:
+                20px;
+
+            font-weight:
+                bold;
+
+            margin-bottom:
+                15px;
         }
+
 
         .node-selector {
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
-            border: 1px solid #475569;
-            background: #0f172a;
-            color: #e2e8f0;
-            font-size: 17px;
+
+            width:
+                100%;
+
+            padding:
+                14px;
+
+            border-radius:
+                10px;
+
+            border:
+                1px solid #475569;
+
+            background:
+                #0f172a;
+
+            color:
+                #e2e8f0;
+
+            font-size:
+                17px;
         }
+
 
         .config-grid {
-            display: grid;
+
+            display:
+                grid;
+
             grid-template-columns:
                 repeat(3, 1fr);
-            gap: 15px;
+
+            gap:
+                15px;
         }
+
 
         label {
-            display: block;
-            color: #94a3b8;
-            font-size: 13px;
-            margin-bottom: 6px;
+
+            display:
+                block;
+
+            color:
+                #94a3b8;
+
+            font-size:
+                13px;
+
+            margin-bottom:
+                6px;
         }
+
 
         input {
-            width: 100%;
-            padding: 11px;
-            border-radius: 8px;
-            border: 1px solid #475569;
-            background: #0f172a;
-            color: white;
-            font-size: 16px;
+
+            width:
+                100%;
+
+            padding:
+                11px;
+
+            border-radius:
+                8px;
+
+            border:
+                1px solid #475569;
+
+            background:
+                #0f172a;
+
+            color:
+                white;
+
+            font-size:
+                16px;
         }
+
 
         button {
-            padding: 11px 20px;
-            margin-top: 16px;
-            border: 0;
-            border-radius: 8px;
-            background: #2563eb;
-            color: white;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
+
+            padding:
+                11px 20px;
+
+            margin-top:
+                16px;
+
+            border:
+                0;
+
+            border-radius:
+                8px;
+
+            background:
+                #2563eb;
+
+            color:
+                white;
+
+            font-size:
+                15px;
+
+            font-weight:
+                bold;
+
+            cursor:
+                pointer;
         }
+
 
         .muted {
-            color: #94a3b8;
+
+            color:
+                #94a3b8;
         }
+
 
         .dchi-area {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 18px;
+
+            display:
+                grid;
+
+            grid-template-columns:
+                2fr 1fr;
+
+            gap:
+                18px;
         }
+
 
         .dchi-number {
-            font-size: 82px;
-            font-weight: bold;
-            margin: 8px 0;
-            text-align: center;
+
+            font-size:
+                82px;
+
+            font-weight:
+                bold;
+
+            margin:
+                8px 0;
+
+            text-align:
+                center;
         }
+
 
         .status {
-            display: inline-block;
-            padding: 9px 22px;
-            border-radius: 999px;
-            font-weight: bold;
+
+            display:
+                inline-block;
+
+            padding:
+                9px 22px;
+
+            border-radius:
+                999px;
+
+            font-weight:
+                bold;
         }
+
 
         .healthy {
-            background: #14532d;
-            color: #bbf7d0;
+
+            background:
+                #14532d;
+
+            color:
+                #bbf7d0;
         }
+
 
         .monitor {
-            background: #713f12;
-            color: #fef08a;
+
+            background:
+                #713f12;
+
+            color:
+                #fef08a;
         }
+
 
         .priority {
-            background: #7f1d1d;
-            color: #fecaca;
+
+            background:
+                #7f1d1d;
+
+            color:
+                #fecaca;
         }
+
 
         .config-required {
-            background: #334155;
-            color: #f8fafc;
+
+            background:
+                #334155;
+
+            color:
+                #f8fafc;
         }
+
 
         .sensor-grid {
-            display: grid;
+
+            display:
+                grid;
+
             grid-template-columns:
                 repeat(3, 1fr);
-            gap: 18px;
+
+            gap:
+                18px;
         }
+
 
         .sensor-value {
-            font-size: 30px;
-            font-weight: bold;
-            margin: 10px 0;
+
+            font-size:
+                30px;
+
+            font-weight:
+                bold;
+
+            margin:
+                10px 0;
         }
+
 
         .score {
-            color: #94a3b8;
-            margin-top: 6px;
+
+            color:
+                #94a3b8;
+
+            margin-top:
+                6px;
         }
+
 
         .problem {
-            font-size: 28px;
-            font-weight: bold;
+
+            font-size:
+                28px;
+
+            font-weight:
+                bold;
         }
 
+
         .priority-table {
-            width: 100%;
-            border-collapse: collapse;
+
+            width:
+                100%;
+
+            border-collapse:
+                collapse;
         }
+
 
         .priority-table th,
         .priority-table td {
-            text-align: left;
-            padding: 12px 10px;
-            border-bottom: 1px solid #334155;
+
+            text-align:
+                left;
+
+            padding:
+                12px 10px;
+
+            border-bottom:
+                1px solid #334155;
         }
+
 
         .priority-table th {
-            color: #94a3b8;
-            font-size: 13px;
+
+            color:
+                #94a3b8;
+
+            font-size:
+                13px;
         }
 
-        .small-button {
-            padding: 7px 11px;
-            margin: 0;
-            font-size: 13px;
-        }
-
-        .history-table {
-            max-height: 320px;
-            overflow-y: auto;
-        }
-
-        .message {
-            margin-top: 10px;
-            color: #94a3b8;
-        }
 
         @media (max-width: 900px) {
 
             .config-grid,
             .sensor-grid,
             .dchi-area {
-                grid-template-columns: 1fr;
+
+                grid-template-columns:
+                    1fr;
             }
         }
 
@@ -217,24 +400,25 @@
 
 </head>
 
+
 <body>
 
 <div class="container">
 
-    <div class="header">
 
-        <h1>
-            Drainage Capacity Health Index
-        </h1>
+    <h1>
+        Drainage Capacity Health Index
+    </h1>
 
-        <div class="subtitle">
-            NicRush — Multi-Node Drainage Monitoring
-        </div>
 
+    <div class="subtitle">
+        NicRush — Multi-Node Drainage Monitoring
     </div>
 
 
-    <!-- NODE SELECTOR -->
+    <!-- ================================================= -->
+    <!-- NODE SELECTOR                                    -->
+    <!-- ================================================= -->
 
     <div class="card">
 
@@ -242,21 +426,25 @@
             Monitor Drainage Node
         </div>
 
+
         <select
             id="nodeSelector"
             class="node-selector"
         ></select>
 
+
         <div
             id="selectorMessage"
-            class="message"
+            class="muted"
         >
         </div>
 
     </div>
 
 
-    <!-- NODE CONFIGURATION -->
+    <!-- ================================================= -->
+    <!-- CONFIGURATION                                    -->
+    <!-- ================================================= -->
 
     <div
         id="configurationCard"
@@ -268,7 +456,9 @@
             Node Configuration
         </div>
 
+
         <div class="config-grid">
+
 
             <div>
 
@@ -328,14 +518,16 @@
 
         <div
             id="configMessage"
-            class="message"
+            class="muted"
         >
         </div>
 
     </div>
 
 
-    <!-- DCHI -->
+    <!-- ================================================= -->
+    <!-- DCHI + PRIMARY PROBLEM                            -->
+    <!-- ================================================= -->
 
     <div
         id="dchiArea"
@@ -343,11 +535,13 @@
         style="display:none;"
     >
 
+
         <div class="card">
 
             <div class="title">
                 Drainage Health
             </div>
+
 
             <div
                 id="activeDrain"
@@ -356,12 +550,14 @@
                 --
             </div>
 
+
             <div
                 id="dchi"
                 class="dchi-number"
             >
                 --
             </div>
+
 
             <div
                 style="text-align:center;"
@@ -385,6 +581,7 @@
                 Primary Problem
             </div>
 
+
             <div
                 id="primaryProblem"
                 class="problem"
@@ -392,18 +589,14 @@
                 --
             </div>
 
-            <div
-                id="problemDescription"
-                class="muted"
-            >
-            </div>
-
         </div>
 
     </div>
 
 
-    <!-- SENSOR DATA -->
+    <!-- ================================================= -->
+    <!-- SENSOR VALUES                                    -->
+    <!-- ================================================= -->
 
     <div
         id="sensorArea"
@@ -411,11 +604,15 @@
         style="display:none;"
     >
 
+
+        <!-- FLOW -->
+
         <div class="card">
 
             <div class="title">
-                Flow
+                Flow Rate
             </div>
+
 
             <div
                 id="flowValue"
@@ -424,71 +621,85 @@
                 --
             </div>
 
+
             <div
                 id="flowScore"
                 class="score"
             >
-                Penalty: --
+                Flow penalty: --
             </div>
 
         </div>
 
 
-	<div class="card">
-
-    		<div class="title">
-        		Water Level
-    		</div>
-
-    	<div
-        	id="waterLevelValue"
-        	class="sensor-value"
-    >
-        --
-    </div>
-
-    <div
-        id="fillPercentage"
-        class="score"
-    >
-        Pipe fill: --
-    </div>
-
-    <div
-        id="waterScore"
-        class="score"
-    >
-        Penalty: --
-    </div>
-
-</div>
+        <!-- WATER -->
 
         <div class="card">
 
             <div class="title">
-                Vibration
+                Water Level
             </div>
 
+
             <div
-                id="vibrationValue"
+                id="waterLevelValue"
                 class="sensor-value"
             >
                 --
             </div>
 
+
             <div
-                id="vibrationScore"
+                id="fillPercentage"
                 class="score"
             >
-                Penalty: --
+                Pipe fill: --
+            </div>
+
+
+            <div
+                id="waterScore"
+                class="score"
+            >
+                Water-level penalty: --
             </div>
 
         </div>
 
+
+        <!-- BLOCKAGE -->
+
+        <div class="card">
+
+            <div class="title">
+                Blockage Probability
+            </div>
+
+
+            <div
+                id="blockageProbability"
+                class="sensor-value"
+            >
+                --
+            </div>
+
+
+            <div
+                id="blockageRms"
+                class="score"
+            >
+                Impact RMS: --
+            </div>
+
+        </div>
+
+
     </div>
 
 
-    <!-- PROBLEM RANKING -->
+    <!-- ================================================= -->
+    <!-- PROBLEM RANKING                                  -->
+    <!-- ================================================= -->
 
     <div
         id="problemArea"
@@ -500,17 +711,29 @@
             Problem Ranking
         </div>
 
+
         <table class="priority-table">
 
             <thead>
 
                 <tr>
-                    <th>#</th>
-                    <th>Problem</th>
-                    <th>Penalty</th>
+
+                    <th>
+                        #
+                    </th>
+
+                    <th>
+                        Problem
+                    </th>
+
+                    <th>
+                        Score
+                    </th>
+
                 </tr>
 
             </thead>
+
 
             <tbody
                 id="problemRanking"
@@ -521,7 +744,9 @@
     </div>
 
 
-    <!-- PRIORITY QUEUE -->
+    <!-- ================================================= -->
+    <!-- PRIORITY QUEUE                                  -->
+    <!-- ================================================= -->
 
     <div class="card">
 
@@ -529,19 +754,37 @@
             Priority Queue
         </div>
 
+
         <table class="priority-table">
 
             <thead>
 
                 <tr>
-                    <th>Rank</th>
-                    <th>Node</th>
-                    <th>DCHI</th>
-                    <th>Status</th>
-                    <th>Problem</th>
+
+                    <th>
+                        Rank
+                    </th>
+
+                    <th>
+                        Node
+                    </th>
+
+                    <th>
+                        DCHI
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                    <th>
+                        Problem
+                    </th>
+
                 </tr>
 
             </thead>
+
 
             <tbody
                 id="priorityQueue"
@@ -559,755 +802,919 @@
         Waiting for telemetry...
     </div>
 
+
 </div>
 
 
 <script>
 
 let nodes = [];
+
 let selectedNode = null;
 
 
-async function loadNodes() {
+// ========================================================
+// LOAD NODES
+// ========================================================
 
-    const response =
-        await fetch(
-            "/api/nodes"
+async function loadNodes()
+{
+    try
+    {
+        const response =
+            await fetch(
+                "/api/nodes"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        nodes =
+            data.nodes || [];
+
+
+        await loadPriorityQueue();
+
+        renderNodeSelector();
+
+
+        if (
+            selectedNode &&
+            nodes.some(
+                node =>
+                    node.drain_id
+                    === selectedNode
+            )
+        )
+        {
+            await loadSelectedNode();
+        }
+        else if (
+            nodes.length > 0
+        )
+        {
+            selectedNode =
+                nodes[0].drain_id;
+
+            document.getElementById(
+                "nodeSelector"
+            ).value =
+                selectedNode;
+
+            await loadSelectedNode();
+        }
+        else
+        {
+            selectedNode =
+                null;
+
+            showEmptyDashboard();
+        }
+    }
+    catch (error)
+    {
+        console.error(
+            "Could not load nodes:",
+            error
         );
-
-    const data =
-        await response.json();
-
-    nodes = data.nodes || [];
-
-    renderNodeSelector();
-
-    await loadPriorityQueue();
-
-    if (selectedNode) {
-        await loadSelectedNode();
     }
 }
 
 
-function renderNodeSelector() {
+// ========================================================
+// NODE SELECTOR
+// ========================================================
 
+function renderNodeSelector()
+{
     const select =
         document.getElementById(
             "nodeSelector"
         );
 
-    const previous =
-        selectedNode;
 
     select.innerHTML = "";
 
 
-    if (nodes.length === 0) {
-
+    if (
+        nodes.length === 0
+    )
+    {
         const option =
             document.createElement(
                 "option"
             );
 
-        option.textContent =
-            "No nodes discovered yet";
 
         option.value = "";
 
-        select.appendChild(option);
+        option.textContent =
+            "No nodes discovered yet";
+
+
+        select.appendChild(
+            option
+        );
+
 
         document.getElementById(
             "selectorMessage"
         ).textContent =
             "Send telemetry from a node to discover it.";
 
+
         return;
     }
 
 
     nodes.forEach(
-        node => {
-
+        node =>
+        {
             const option =
                 document.createElement(
                     "option"
                 );
 
+
             option.value =
                 node.drain_id;
 
 
-            if (
-                node.pipe_depth_cm === null
-            ) {
+            const latest =
+                window.nodeLatest
+                ? window.nodeLatest[
+                    node.drain_id
+                ]
+                : null;
 
+
+            if (
+                node.pipe_depth_cm
+                === null
+            )
+            {
                 option.textContent =
                     `${node.drain_id} — PLEASE ENTER DEPTH FIRST`;
-
+            }
+            else if (
+                latest
+                &&
+                latest.dchi !== null
+            )
+            {
+                option.textContent =
+                    `${node.drain_id} — DCHI ${
+                        Number(
+                            latest.dchi
+                        ).toFixed(1)
+                    } — ${
+                        latest.status
+                    }`;
+            }
+            else
+            {
+                option.textContent =
+                    `${node.drain_id} — NO DATA`;
             }
 
-            else {
 
-                const knownLatest =
-                    window.nodeLatest
-                    ? window.nodeLatest[
-                        node.drain_id
-                    ]
-                    : null;
-
-
-                if (
-                    knownLatest &&
-                    knownLatest.dchi !== null
-                ) {
-
-                    option.textContent =
-                        `${node.drain_id} — ` +
-                        `DCHI ${Number(
-                            knownLatest.dchi
-                        ).toFixed(1)} — ` +
-                        `${knownLatest.status}`;
-
-                }
-
-                else {
-
-                    option.textContent =
-                        `${node.drain_id} — NO DATA`;
-
-                }
-
-            }
-
-            select.appendChild(option);
-
+            select.appendChild(
+                option
+            );
         }
     );
 
 
-    if (
-        previous &&
-        nodes.some(
-            n => n.drain_id === previous
-        )
-    ) {
-
-        select.value = previous;
-
-    }
-    else {
-
-        selectedNode =
-            nodes[0].drain_id;
-
+    if (selectedNode)
+    {
         select.value =
             selectedNode;
     }
-
-
-    document.getElementById(
-        "selectorMessage"
-    ).textContent =
-        "";
-
 }
 
 
-async function loadAllLatest() {
+// ========================================================
+// LOAD ALL CURRENT READINGS
+// ========================================================
 
+async function loadAllLatest()
+{
     const response =
         await fetch(
             "/api/latest/all"
         );
 
+
     const data =
         await response.json();
+
 
     window.nodeLatest = {};
 
-    (data.readings || [])
-        .forEach(
-            reading => {
 
-                window.nodeLatest[
-                    reading.drain_id
-                ] = reading;
-
-            }
-        );
+    (
+        data.readings || []
+    ).forEach(
+        reading =>
+        {
+            window.nodeLatest[
+                reading.drain_id
+            ] = reading;
+        }
+    );
 }
 
 
-async function loadPriorityQueue() {
+// ========================================================
+// PRIORITY QUEUE
+// ========================================================
 
-    await loadAllLatest();
-
-
-    const response =
-        await fetch("/api/priority");
-
-
-    const data =
-        await response.json();
+async function loadPriorityQueue()
+{
+    try
+    {
+        await loadAllLatest();
 
 
+        const response =
+            await fetch(
+                "/api/priority"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        const tbody =
+            document.getElementById(
+                "priorityQueue"
+            );
+
+
+        tbody.innerHTML = "";
+
+
+        const queue =
+            data.priority_queue
+            || [];
+
+
+        // ------------------------------------------------
+        // Configured nodes with valid DCHI.
+        // The backend already sorted them by DCHI.
+        // ------------------------------------------------
+
+        queue.forEach(
+            item =>
+            {
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+                    <td>${item.rank}</td>
+
+                    <td>${item.drain_id}</td>
+
+                    <td>${
+                        Number(
+                            item.dchi
+                        ).toFixed(1)
+                    }</td>
+
+                    <td>${item.status}</td>
+
+                    <td>${
+                        item.primary_problem
+                        || "—"
+                    }</td>
+                `;
+
+
+                tbody.appendChild(
+                    row
+                );
+            }
+        );
+
+
+        // ------------------------------------------------
+        // Unconfigured discovered nodes.
+        // ------------------------------------------------
+
+        nodes
+            .filter(
+                node =>
+                    node.pipe_depth_cm
+                    === null
+            )
+            .forEach(
+                node =>
+                {
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+
+
+                    row.innerHTML = `
+                        <td>—</td>
+
+                        <td>${node.drain_id}</td>
+
+                        <td>—</td>
+
+                        <td>ENTER DEPTH</td>
+
+                        <td>
+                            PLEASE ENTER DEPTH FIRST
+                        </td>
+                    `;
+
+
+                    tbody.appendChild(
+                        row
+                    );
+                }
+            );
+
+
+        // ------------------------------------------------
+        // Configured nodes without current telemetry.
+        // ------------------------------------------------
+
+        nodes
+            .filter(
+                node =>
+                    node.pipe_depth_cm
+                    !== null
+                    &&
+                    !queue.some(
+                        item =>
+                            item.drain_id
+                            === node.drain_id
+                    )
+            )
+            .forEach(
+                node =>
+                {
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+
+
+                    row.innerHTML = `
+                        <td>—</td>
+
+                        <td>${node.drain_id}</td>
+
+                        <td>—</td>
+
+                        <td>NO DATA</td>
+
+                        <td>
+                            Waiting for telemetry
+                        </td>
+                    `;
+
+
+                    tbody.appendChild(
+                        row
+                    );
+                }
+            );
+    }
+    catch (error)
+    {
+        console.error(
+            "Priority queue error:",
+            error
+        );
+    }
+}
+
+
+// ========================================================
+// LOAD SELECTED NODE
+// ========================================================
+
+async function loadSelectedNode()
+{
+    if (!selectedNode)
+    {
+        return;
+    }
+
+
+    try
+    {
+        const nodeResponse =
+            await fetch(
+                `/api/nodes/${
+                    encodeURIComponent(
+                        selectedNode
+                    )
+                }`
+            );
+
+
+        if (!nodeResponse.ok)
+        {
+            return;
+        }
+
+
+        const node =
+            await nodeResponse.json();
+
+
+        document.getElementById(
+            "configurationCard"
+        ).style.display =
+            "block";
+
+
+        document.getElementById(
+            "configDrainId"
+        ).value =
+            selectedNode;
+
+
+        document.getElementById(
+            "pipeDepth"
+        ).value =
+            node.pipe_depth_cm
+            ?? "";
+
+
+        document.getElementById(
+            "sensorOffset"
+        ).value =
+            node.sensor_offset_cm
+            ?? 0;
+
+
+        if (
+            node.pipe_depth_cm
+            === null
+        )
+        {
+            document.getElementById(
+                "dchiArea"
+            ).style.display =
+                "none";
+
+
+            document.getElementById(
+                "sensorArea"
+            ).style.display =
+                "none";
+
+
+            document.getElementById(
+                "problemArea"
+            ).style.display =
+                "none";
+
+
+            document.getElementById(
+                "configMessage"
+            ).textContent =
+                "Please enter pipe depth to calculate DCHI.";
+
+
+            return;
+        }
+
+
+        document.getElementById(
+            "configMessage"
+        ).textContent =
+            `Pipe depth: ${
+                node.pipe_depth_cm
+            } cm`;
+
+
+        await loadLatestForSelectedNode();
+    }
+    catch (error)
+    {
+        console.error(
+            "Node loading error:",
+            error
+        );
+    }
+}
+
+
+// ========================================================
+// LOAD CURRENT NODE READING
+// ========================================================
+
+async function loadLatestForSelectedNode()
+{
+    try
+    {
+        const response =
+            await fetch(
+                `/api/latest?drain_id=${
+                    encodeURIComponent(
+                        selectedNode
+                    )
+                }`
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            data.status
+            === "NO_DATA"
+        )
+        {
+            hideTelemetrySections();
+
+            return;
+        }
+
+
+        if (
+            data.status
+            === "CONFIG_REQUIRED"
+        )
+        {
+            hideTelemetrySections();
+
+            return;
+        }
+
+
+        if (
+            data.dchi
+            === null
+            ||
+            data.dchi
+            === undefined
+        )
+        {
+            hideTelemetrySections();
+
+            return;
+        }
+
+
+        document.getElementById(
+            "dchiArea"
+        ).style.display =
+            "grid";
+
+
+        document.getElementById(
+            "sensorArea"
+        ).style.display =
+            "grid";
+
+
+        document.getElementById(
+            "problemArea"
+        ).style.display =
+            "block";
+
+
+        document.getElementById(
+            "activeDrain"
+        ).textContent =
+            data.drain_id;
+
+
+        document.getElementById(
+            "dchi"
+        ).textContent =
+            Number(
+                data.dchi
+            ).toFixed(1);
+
+
+        setStatus(
+            data.status
+        );
+
+
+        // ------------------------------------------------
+        // FLOW
+        // ------------------------------------------------
+
+        document.getElementById(
+            "flowValue"
+        ).textContent =
+            `${Number(
+                data.raw.flow_rate
+            ).toFixed(2)} L/min`;
+
+
+        document.getElementById(
+            "flowScore"
+        ).textContent =
+            `Flow penalty: ${
+                Number(
+                    data.scores.flow
+                ).toFixed(1)
+            }`;
+
+
+        // ------------------------------------------------
+        // WATER LEVEL
+        // ------------------------------------------------
+        //
+        // THIS IS NOW THE ACTUAL WATER DEPTH.
+        //
+        // Not sensor-to-water distance.
+        // ------------------------------------------------
+
+        document.getElementById(
+            "waterLevelValue"
+        ).textContent =
+            `${Number(
+                data.derived.water_depth_cm
+            ).toFixed(2)} cm`;
+
+
+        document.getElementById(
+            "fillPercentage"
+        ).textContent =
+            `Pipe fill: ${
+                Number(
+                    data.derived.fill_percentage
+                ).toFixed(1)
+            }%`;
+
+
+        document.getElementById(
+            "waterScore"
+        ).textContent =
+            `Water-level penalty: ${
+                Number(
+                    data.scores.water_level
+                ).toFixed(1)
+            }`;
+
+
+        // ------------------------------------------------
+        // BLOCKAGE
+        // ------------------------------------------------
+
+        document.getElementById(
+            "blockageProbability"
+        ).textContent =
+            `${Number(
+                data.scores.blockage
+            ).toFixed(1)}%`;
+
+
+        document.getElementById(
+            "blockageRms"
+        ).textContent =
+            `Impact RMS: ${
+                Number(
+                    data.raw.impact_rms_g
+                ).toFixed(4)
+            } g`;
+
+
+        // ------------------------------------------------
+        // PRIMARY PROBLEM
+        // ------------------------------------------------
+
+        document.getElementById(
+            "primaryProblem"
+        ).textContent =
+            data.primary_problem;
+
+
+        // ------------------------------------------------
+        // PROBLEM RANKING
+        // ------------------------------------------------
+
+        renderProblemRanking(
+            data.problem_ranking
+            || []
+        );
+
+
+        // ------------------------------------------------
+        // LAST UPDATE
+        // ------------------------------------------------
+
+        document.getElementById(
+            "lastUpdate"
+        ).textContent =
+            `Sensor timestamp: ${
+                data.timestamp
+            } | Pi update: ${
+                data.updated_at
+            }`;
+    }
+    catch (error)
+    {
+        console.error(
+            "Latest reading error:",
+            error
+        );
+    }
+}
+
+
+// ========================================================
+// PROBLEM RANKING
+// ========================================================
+
+function renderProblemRanking(
+    problems
+)
+{
     const tbody =
         document.getElementById(
-            "priorityQueue"
+            "problemRanking"
         );
 
 
     tbody.innerHTML = "";
 
 
-    const priorityQueue =
-        data.priority_queue || [];
-
-
-    // ------------------------------------------------------
-    // 1. Render configured nodes WITH DCHI in actual rank order
-    // ------------------------------------------------------
-
-    priorityQueue.forEach(
-        item => {
-
-            const row =
-                document.createElement("tr");
-
-
-            const rank =
-                document.createElement("td");
-
-
-            const nodeCell =
-                document.createElement("td");
-
-
-            const dchi =
-                document.createElement("td");
-
-
-            const status =
-                document.createElement("td");
-
-
-            const problem =
-                document.createElement("td");
-
-
-            rank.textContent =
-                item.rank;
-
-
-            nodeCell.textContent =
-                item.drain_id;
-
-
-            dchi.textContent =
-                Number(
-                    item.dchi
-                ).toFixed(1);
-
-
-            status.textContent =
-                item.status;
-
-
-            problem.textContent =
-                item.primary_problem
-                || "—";
-
-
-            row.appendChild(rank);
-            row.appendChild(nodeCell);
-            row.appendChild(dchi);
-            row.appendChild(status);
-            row.appendChild(problem);
-
-
-            tbody.appendChild(row);
-
-        }
-    );
-
-
-    // ------------------------------------------------------
-    // 2. Add discovered but unconfigured nodes AFTER
-    //    the real priority queue.
-    // ------------------------------------------------------
-
-    nodes
-        .filter(
-            node =>
-                node.pipe_depth_cm === null
-        )
-        .forEach(
-            node => {
-
-                const row =
-                    document.createElement("tr");
-
-
-                const rank =
-                    document.createElement("td");
-
-
-                const nodeCell =
-                    document.createElement("td");
-
-
-                const dchi =
-                    document.createElement("td");
-
-
-                const status =
-                    document.createElement("td");
-
-
-                const problem =
-                    document.createElement("td");
-
-
-                rank.textContent =
-                    "—";
-
-
-                nodeCell.textContent =
-                    node.drain_id;
-
-
-                dchi.textContent =
-                    "—";
-
-
-                status.textContent =
-                    "ENTER DEPTH";
-
-
-                problem.textContent =
-                    "Configuration required";
-
-
-                row.appendChild(rank);
-                row.appendChild(nodeCell);
-                row.appendChild(dchi);
-                row.appendChild(status);
-                row.appendChild(problem);
-
-
-                tbody.appendChild(row);
-
-            }
-        );
-
-
-    // ------------------------------------------------------
-    // 3. Add configured nodes with no telemetry, if any.
-    // ------------------------------------------------------
-
-    nodes
-        .filter(
-            node =>
-                node.pipe_depth_cm !== null
-                &&
-                !priorityQueue.some(
-                    item =>
-                        item.drain_id
-                        === node.drain_id
-                )
-        )
-        .forEach(
-            node => {
-
-                const row =
-                    document.createElement("tr");
-
-
-                row.innerHTML = `
-                    <td>—</td>
-                    <td>${node.drain_id}</td>
-                    <td>—</td>
-                    <td>NO DATA</td>
-                    <td>Waiting for telemetry</td>
-                `;
-
-
-                tbody.appendChild(row);
-
-            }
-        );
-
-}
-
-async function loadSelectedNode() {
-
-    if (!selectedNode) {
-        return;
-    }
-
-
-    const nodeResponse =
-        await fetch(
-            `/api/nodes/${
-                encodeURIComponent(
-                    selectedNode
-                )
-            }`
-        );
-
-
-    if (!nodeResponse.ok) {
-        return;
-    }
-
-
-    const node =
-        await nodeResponse.json();
-
-
-    document.getElementById(
-        "activeDrain"
-    ).textContent =
-        selectedNode;
-
-
-    const configCard =
-        document.getElementById(
-            "configurationCard"
-        );
-
-
-    configCard.style.display =
-        "block";
-
-
-    document.getElementById(
-        "configDrainId"
-    ).value =
-        selectedNode;
-
-
-    document.getElementById(
-        "pipeDepth"
-    ).value =
-        node.pipe_depth_cm ?? "";
-
-
-    document.getElementById(
-        "sensorOffset"
-    ).value =
-        node.sensor_offset_cm ?? 0;
-
-
-    if (
-        node.pipe_depth_cm === null
-    ) {
-
-        document.getElementById(
-            "dchiArea"
-        ).style.display =
-            "none";
-
-        document.getElementById(
-            "sensorArea"
-        ).style.display =
-            "none";
-
-        document.getElementById(
-            "problemArea"
-        ).style.display =
-            "none";
-
-
-        document.getElementById(
-            "configMessage"
-        ).textContent =
-            "Please enter pipe depth to calculate DCHI.";
-
-        return;
-    }
-
-
-    document.getElementById(
-        "configMessage"
-    ).textContent =
-        `Pipe depth: ${
-            node.pipe_depth_cm
-        } cm`;
-
-
-    await loadLatestForSelectedNode();
-}
-
-
-async function loadLatestForSelectedNode() {
-
-    const response =
-        await fetch(
-            `/api/latest?drain_id=${
-                encodeURIComponent(
-                    selectedNode
-                )
-            }`
-        );
-
-
-    const data =
-        await response.json();
-
-
-    if (
-        data.status === "NO_DATA"
-    ) {
-
-        document.getElementById(
-            "dchiArea"
-        ).style.display =
-            "none";
-
-        document.getElementById(
-            "sensorArea"
-        ).style.display =
-            "none";
-
-        document.getElementById(
-            "problemArea"
-        ).style.display =
-            "none";
-
-        return;
-    }
-
-
-    if (
-        data.status === "CONFIG_REQUIRED"
-    ) {
-
-        return;
-    }
-
-
-    document.getElementById(
-        "dchiArea"
-    ).style.display =
-        "grid";
-
-    document.getElementById(
-        "sensorArea"
-    ).style.display =
-        "grid";
-
-    document.getElementById(
-        "problemArea"
-    ).style.display =
-        "block";
-
-
-    document.getElementById(
-        "dchi"
-    ).textContent =
-        Number(
-            data.dchi
-        ).toFixed(1);
-
-
-    setStatus(
-        data.status
-    );
-
-
-    document.getElementById(
-        "flowValue"
-    ).textContent =
-        `${Number(
-            data.flow_rate
-        ).toFixed(2)} L/min`;
-
-
-    document.getElementById(
-        "flowScore"
-    ).textContent =
-        `Penalty: ${
-            Number(
-                data.flow_score
-            ).toFixed(1)
-        }`;
-
-
-document.getElementById(
-    "waterLevelValue"
-).textContent =
-    `${Number(
-        data.water_depth_cm
-    ).toFixed(2)} cm`;
-
-    document.getElementById(
-        "fillPercentage"
-    ).textContent =
-        `Fill: ${
-            Number(
-                data.fill_percentage
-            ).toFixed(1)
-        }%`;
-
-
-    document.getElementById(
-        "waterScore"
-    ).textContent =
-        `Penalty: ${
-            Number(
-                data.water_level_score
-            ).toFixed(1)
-        }`;
-
-
-    document.getElementById(
-        "vibrationValue"
-    ).textContent =
-        Number(
-            data.vibration
-        ).toFixed(3);
-
-
-    document.getElementById(
-        "vibrationScore"
-    ).textContent =
-        `Penalty: ${
-            Number(
-                data.vibration_score
-            ).toFixed(1)
-        }`;
-
-
-    document.getElementById(
-        "primaryProblem"
-    ).textContent =
-        data.primary_problem;
-
-
-    const problemTable =
-        document.getElementById(
-            "problemRanking"
-        );
-
-    problemTable.innerHTML = "";
-
-
-    (
-        data.problem_ranking
-        || []
-    ).forEach(
-        (problem, index) => {
-
+    problems.forEach(
+        (problem, index) =>
+        {
             const row =
                 document.createElement(
                     "tr"
                 );
 
-            row.innerHTML =
-                `
-                <td>${index + 1}</td>
-                <td>${problem.type}</td>
-                <td>${Number(
-                    problem.score
-                ).toFixed(1)}</td>
-                `;
 
-            problemTable.appendChild(
+            row.innerHTML = `
+                <td>${index + 1}</td>
+
+                <td>${problem.type}</td>
+
+                <td>${
+                    Number(
+                        problem.score
+                    ).toFixed(1)
+                } / 100</td>
+            `;
+
+
+            tbody.appendChild(
                 row
             );
-
         }
     );
-
-
-    document.getElementById(
-        "lastUpdate"
-    ).textContent =
-        `Sensor timestamp: ${
-            data.timestamp
-        } | Pi update: ${
-            data.updated_at
-        }`;
-
 }
 
 
+// ========================================================
+// STATUS
+// ========================================================
+
 function setStatus(
     status
-) {
-
+)
+{
     const element =
         document.getElementById(
             "status"
         );
 
+
     element.className =
         "status";
 
 
-    if (status === "HEALTHY") {
-
+    if (
+        status
+        === "HEALTHY"
+    )
+    {
         element.classList.add(
             "healthy"
         );
-
     }
-
-    else if (status === "MONITOR") {
-
+    else if (
+        status
+        === "MONITOR"
+    )
+    {
         element.classList.add(
             "monitor"
         );
-
     }
-
-    else if (status === "PRIORITY") {
-
+    else if (
+        status
+        === "PRIORITY"
+    )
+    {
         element.classList.add(
             "priority"
         );
-
     }
-
-    else {
-
+    else
+    {
         element.classList.add(
             "config-required"
         );
-
     }
 
 
     element.textContent =
         status;
-
 }
 
+
+// ========================================================
+// HIDE TELEMETRY
+// ========================================================
+
+function hideTelemetrySections()
+{
+    document.getElementById(
+        "dchiArea"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "sensorArea"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "problemArea"
+    ).style.display =
+        "none";
+}
+
+
+// ========================================================
+// EMPTY DASHBOARD
+// ========================================================
+
+function showEmptyDashboard()
+{
+    document.getElementById(
+        "configurationCard"
+    ).style.display =
+        "none";
+
+
+    hideTelemetrySections();
+
+
+    document.getElementById(
+        "lastUpdate"
+    ).textContent =
+        "Waiting for telemetry...";
+}
+
+
+// ========================================================
+// SELECT NODE
+// ========================================================
 
 document.getElementById(
     "nodeSelector"
 ).addEventListener(
     "change",
-    async event => {
-
+    async event =>
+    {
         selectedNode =
             event.target.value;
 
-        await loadSelectedNode();
 
+        await loadSelectedNode();
     }
 );
 
+
+// ========================================================
+// SAVE NODE CONFIGURATION
+// ========================================================
 
 document.getElementById(
     "saveConfigButton"
 ).addEventListener(
     "click",
-    async () => {
-
-        if (!selectedNode) {
+    async () =>
+    {
+        if (!selectedNode)
+        {
             return;
         }
 
@@ -1332,93 +1739,126 @@ document.getElementById(
             !Number.isFinite(
                 pipeDepth
             )
-            || pipeDepth <= 0
-        ) {
-
+            ||
+            pipeDepth <= 0
+        )
+        {
             document.getElementById(
                 "configMessage"
             ).textContent =
                 "Enter a valid pipe depth.";
 
+
             return;
         }
 
 
-        const response =
-            await fetch(
-                `/api/nodes/${
-                    encodeURIComponent(
-                        selectedNode
-                    )
-                }/config`,
-                {
-
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        pipe_depth_cm:
-                            pipeDepth,
-
-                        sensor_offset_cm:
-                            sensorOffset
-
-                    })
-
-                }
-            );
+        if (
+            !Number.isFinite(
+                sensorOffset
+            )
+            ||
+            sensorOffset < 0
+        )
+        {
+            document.getElementById(
+                "configMessage"
+            ).textContent =
+                "Sensor offset cannot be negative.";
 
 
-        const data =
-            await response.json();
+            return;
+        }
 
 
-        if (!response.ok) {
+        try
+        {
+            const response =
+                await fetch(
+                    `/api/nodes/${
+                        encodeURIComponent(
+                            selectedNode
+                        )
+                    }/config`,
+                    {
+                        method:
+                            "POST",
+
+                        headers:
+                        {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+                                    pipe_depth_cm:
+                                        pipeDepth,
+
+                                    sensor_offset_cm:
+                                        sensorOffset
+                                }
+                            )
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok)
+            {
+                throw new Error(
+                    data.detail
+                    ||
+                    "Configuration failed."
+                );
+            }
+
 
             document.getElementById(
                 "configMessage"
             ).textContent =
-                data.detail
-                || "Configuration failed.";
+                "Configuration saved.";
 
-            return;
+
+            await loadNodes();
+
+            await loadSelectedNode();
         }
-
-
-        document.getElementById(
-            "configMessage"
-        ).textContent =
-            "Configuration saved.";
-
-        await loadNodes();
-
-        await loadSelectedNode();
-
+        catch (error)
+        {
+            document.getElementById(
+                "configMessage"
+            ).textContent =
+                error.message;
+        }
     }
 );
 
 
-async function refreshEverything() {
+// ========================================================
+// INITIAL LOAD
+// ========================================================
 
+async function refreshDashboard()
+{
     await loadNodes();
-
 }
 
 
-refreshEverything();
+refreshDashboard();
 
 
 setInterval(
-    refreshEverything,
+    refreshDashboard,
     3000
 );
 
 </script>
 
 </body>
+
 </html>

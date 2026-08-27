@@ -1,13 +1,17 @@
 import math
 
 
+# ============================================================
+# GENERAL UTILITY
+# ============================================================
+
 def clamp(
     value: float,
     minimum: float = 0.0,
     maximum: float = 100.0,
 ) -> float:
     """
-    Keep a value within the requested range.
+    Keep a value within a specified range.
     """
 
     return max(
@@ -20,32 +24,32 @@ def clamp(
 # FLOW STANDARDIZATION
 # ============================================================
 #
-# Prototype flow-risk curve:
+# Prototype flow-risk model:
 #
-#   0 L/min   -> 100 penalty
-#   10 L/min  ->   0 penalty  (nominal healthy point)
-#   20 L/min  -> 100 penalty
-#   >20 L/min -> 100 penalty  (overflow / excessive flow)
+#       0 L/min  -> 100 penalty
+#      10 L/min  ->   0 penalty
+#      20 L/min  -> 100 penalty
+#      >20 L/min -> 100 penalty
 #
-# The curve is continuous rather than bucketed.
+# The curve is continuous.
 #
 # Formula:
 #
 # penalty =
-#     100 * abs(cos(pi * flow / 20))
+#     100 * |cos(pi * flow / 20)|
 #
-# Therefore values such as:
+# This means intermediate readings such as:
 #
-#   7.0
-#   7.13
-#   8.42
-#   9.75
+# 7.00
+# 7.13
+# 8.42
+# 9.76
 #
 # all receive their own 0-100 penalty.
 #
 # IMPORTANT:
 # These are prototype calibration values, not universal
-# hydraulic limits for every 9.5 cm drainage pipe.
+# hydraulic limits for every drain.
 # ============================================================
 
 FLOW_HEALTHY = 10.0
@@ -56,40 +60,20 @@ def standardize_flow(
     flow_rate: float,
 ) -> float:
     """
-    Convert flow rate into a 0-100 penalty score.
+    Convert flow rate in L/min into a 0-100
+    drainage-risk penalty.
 
-    Lowest penalty:
-        10 L/min
-
-    Highest penalty:
-        0 L/min
-        20 L/min
-        anything above 20 L/min
+    10 L/min is the nominal healthy point.
     """
 
-    # Prevent impossible negative flow values.
     flow_rate = max(
         0.0,
-        flow_rate,
+        float(flow_rate),
     )
 
-    # --------------------------------------------------------
-    # Overflow / excessive-flow region
-    # --------------------------------------------------------
-
+    # Excessive-flow / overflow region.
     if flow_rate >= FLOW_MAX:
         return 100.0
-
-    # --------------------------------------------------------
-    # Smooth double-ended penalty curve
-    # --------------------------------------------------------
-    #
-    # 0 L/min  -> 100
-    # 10 L/min ->   0
-    # 20 L/min -> 100
-    #
-    # Using absolute cosine gives the two-sided curve.
-    # --------------------------------------------------------
 
     penalty = (
         100.0
@@ -111,73 +95,74 @@ def standardize_flow(
 # ============================================================
 # WATER LEVEL STANDARDIZATION
 # ============================================================
-#
-# The backend converts:
-#
-#   pipe depth
-#        +
-#   ultrasonic distance
-#
-# into:
-#
-#   water depth
-#   fill percentage
-#
-# Since fill percentage is already 0-100, it can directly
-# represent the water-level penalty.
-# ============================================================
 
 def standardize_water_level(
     fill_percentage: float,
 ) -> float:
     """
-    Convert pipe fill percentage into a 0-100
-    water-level penalty.
+    Fill percentage is already 0-100.
+
+    For the prototype this directly represents
+    the water-level penalty.
     """
 
     return round(
-        clamp(fill_percentage),
+        clamp(
+            float(fill_percentage)
+        ),
         2,
     )
 
 
 # ============================================================
-# VIBRATION STANDARDIZATION
+# BLOCKAGE PROBABILITY
 # ============================================================
 #
-# Prototype calibration.
+# The MPU6050 is mounted on the mechanical rod inside
+# the drainage pipe.
 #
-#   0.0  ->   0 penalty
-#   1.0+ -> 100 penalty
+# The ESP32 currently sends its calculated movement RMS
+# through the telemetry field named "vibration".
 #
-# This range should eventually be calibrated using your
-# actual MPU6050 measurements.
+# We interpret that numeric value as impact RMS in g.
+#
+# Prototype calibration:
+#
+#     0.00 g ->   0% blockage probability
+#     0.10 g -> 100% blockage probability
+#
+# >0.10 g is capped at 100%.
+#
+# This is an estimated prototype probability score,
+# not a statistically validated probability until
+# blocked/unblocked field data is collected.
 # ============================================================
 
-VIBRATION_MIN = 0.0
-VIBRATION_MAX = 1.0
+BLOCKAGE_RMS_MAX = 0.10
 
 
-def standardize_vibration(
-    vibration: float,
+def standardize_blockage(
+    rms_g: float,
 ) -> float:
     """
-    Convert vibration measurement into a
-    0-100 penalty score.
+    Convert impact RMS in g into a 0-100
+    estimated blockage probability.
     """
 
-    penalty = (
-        (
-            vibration
-            - VIBRATION_MIN
-        )
-        / (
-            VIBRATION_MAX
-            - VIBRATION_MIN
-        )
+    rms_g = max(
+        0.0,
+        float(rms_g),
+    )
+
+    if rms_g >= BLOCKAGE_RMS_MAX:
+        return 100.0
+
+    probability = (
+        rms_g
+        / BLOCKAGE_RMS_MAX
     ) * 100.0
 
     return round(
-        clamp(penalty),
+        clamp(probability),
         2,
     )
